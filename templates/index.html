@@ -1,78 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Image Compression using K-Means</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Compression Pro | K-Means</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+
         body {
-            background: #f5f7fa;
+            background: #0f0c29;
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #fff;
+            min-height: 100vh;
         }
-        .card {
-            border-radius: 16px;
+
+        .main-container {
+            max-width: 900px;
+            margin-top: 50px;
         }
-        img {
-            max-width: 100%;
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            color: #333;
+            transition: transform 0.3s ease;
+        }
+
+        .title-section h1 {
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #a5a5a5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        /* Form Styling */
+        .form-label { font-weight: 600; color: #4a5568; }
+        .form-control {
             border-radius: 12px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Animated Button */
+        .btn-submit {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        .btn-submit:active { transform: translateY(0); }
+
+        .loader-content { display: none; }
+
+        /* Loading State */
+        .btn-submit.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        .btn-submit.loading .btn-text { display: none; }
+        .btn-submit.loading .loader-content { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px;
+        }
+
+        /* Image Display */
+        .img-wrapper {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.8s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .badge-k {
+            background: var(--primary-gradient);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: white;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .result-header { color: white; margin-bottom: 1.5rem; font-weight: 600; }
+
+        .btn-download {
+            background: #27ae60;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            transition: 0.3s;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container py-5">
+<div class="container main-container">
+    <div class="title-section text-center mb-5">
+        <h1><i class="fas fa-layer-group me-2"></i>Image Compressor</h1>
+        <p class="text-white-50">Intelligent color quantization for modern images</p>
+    </div>
 
-    <h2 class="text-center mb-4">
-        🖼️ Image Compression using K-Means
-    </h2>
+    <div class="card glass-card p-4 p-md-5 shadow-lg mb-5">
+        <form id="compressForm" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">Select Image</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" required>
+                </div>
 
-    <!-- Upload Form -->
-    <div class="card p-4 shadow-sm mb-4">
-
-        <form method="POST" enctype="multipart/form-data">
-
-            <div class="mb-3">
-                <label class="form-label">Upload Image</label>
-                <input type="file" name="image" class="form-control" required>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Cluster Count (K)</label>
+                    <input type="number" name="k" value="16" min="2" max="64" class="form-control">
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Number of Colors (K)</label>
-                <input type="number" name="k" value="16" min="2" max="64" class="form-control">
-            </div>
-
-            <button class="btn btn-primary w-100">
-                Compress Image
+            <button type="submit" class="btn btn-submit w-100 mt-3" id="submitBtn">
+                <span class="btn-text">Compress & Optimize</span>
+                <span class="loader-content">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Crunching Pixels...
+                </span>
             </button>
         </form>
     </div>
 
-
     {% if original %}
-
-    <!-- Results -->
-    <div class="row g-4">
-
+    <div class="row g-5 pb-5">
         <div class="col-md-6">
-            <h5>Original</h5>
-            <img src="{{ url_for('static', filename=original) }}">
+            <h5 class="result-header">Original Visual</h5>
+            <div class="img-wrapper">
+                <img src="{{ url_for('static', filename=original) }}" class="w-100 h-auto" alt="Original">
+            </div>
         </div>
 
         <div class="col-md-6">
-            <h5>Compressed ({{k}} colors)</h5>
-            <img src="{{ url_for('static', filename=compressed) }}">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="result-header">Compressed Output</h5>
+                <span class="badge-k">{{k}} Colors</span>
+            </div>
+            <div class="img-wrapper" style="animation-delay: 0.2s;">
+                <img src="{{ url_for('static', filename=compressed) }}" class="w-100 h-auto" alt="Compressed">
+            </div>
 
-            <a href="{{ url_for('static', filename=compressed) }}" download class="btn btn-success mt-3 w-100">
-                Download
+            <a href="{{ url_for('static', filename=compressed) }}" download class="btn btn-download btn-success mt-4 w-100">
+                <i class="fas fa-download me-2"></i> Download Optimized Image
             </a>
         </div>
-
     </div>
-
     {% endif %}
-
 </div>
+
+<script>
+    const form = document.getElementById('compressForm');
+    const btn = document.getElementById('submitBtn');
+
+    form.onsubmit = function() {
+        // Trigger the loading state
+        btn.classList.add('loading');
+        
+        // Disable form to prevent double submissions
+        const inputs = form.querySelectorAll('input, button');
+        inputs.forEach(input => input.style.pointerEvents = 'none');
+    };
+</script>
 
 </body>
 </html>

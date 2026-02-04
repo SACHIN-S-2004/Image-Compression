@@ -59,11 +59,14 @@ def index():
 
         compressed = compress_image(upload_path, k)
 
-        output_name = f"compressed_{k}_{filename}"
+        # Change extension to .jpg for better compression
+        base_name = os.path.splitext(filename)[0]
+        output_name = f"compressed_{k}_{base_name}.jpg"
         output_path = os.path.join(OUTPUT_FOLDER, output_name)
 
-        # save image
-        cv2.imwrite(output_path, cv2.cvtColor(compressed, cv2.COLOR_RGB2BGR))
+        # Save as JPEG with quality setting (0-100, lower = smaller file)
+        cv2.imwrite(output_path, cv2.cvtColor(compressed, cv2.COLOR_RGB2BGR), 
+                   [cv2.IMWRITE_JPEG_QUALITY, 85])
 
         return render_template(
             "index.html",
