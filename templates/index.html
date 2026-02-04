@@ -170,6 +170,17 @@
             <div class="img-wrapper">
                 <img src="{{ url_for('static', filename=original) }}" class="w-100 h-auto" alt="Original">
             </div>
+            <div class="glass-card p-3 mt-3">
+                <div class="small text-muted mb-2"><i class="fas fa-info-circle me-1"></i> Original Details</div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-palette me-2"></i>Unique Colors:</span>
+                    <strong>{{ "{:,}".format(unique_colors) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><i class="fas fa-file me-2"></i>File Size:</span>
+                    <strong>{{ original_size }} KB</strong>
+                </div>
+            </div>
         </div>
 
         <div class="col-md-6">
@@ -180,8 +191,23 @@
             <div class="img-wrapper" style="animation-delay: 0.2s;">
                 <img src="{{ url_for('static', filename=compressed) }}" class="w-100 h-auto" alt="Compressed">
             </div>
+            <div class="glass-card p-3 mt-3">
+                <div class="small text-muted mb-2"><i class="fas fa-chart-line me-1"></i> Compression Stats</div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-compress me-2"></i>Compressed to:</span>
+                    <strong>{{ k }} Colors</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-file-archive me-2"></i>File Size:</span>
+                    <strong>{{ compressed_size }} KB</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><i class="fas fa-percentage me-2"></i>Space Saved:</span>
+                    <strong class="text-success">{{ compression_ratio }}%</strong>
+                </div>
+            </div>
 
-            <a href="{{ url_for('static', filename=compressed) }}" download class="btn btn-download btn-success mt-4 w-100">
+            <a href="{{ url_for('static', filename=compressed) }}" download class="btn btn-download btn-success mt-3 w-100">
                 <i class="fas fa-download me-2"></i> Download Optimized Image
             </a>
         </div>

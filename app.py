@@ -28,6 +28,9 @@ def compress_image(image_path, k=16):
     # reshape -> (pixels, 3)
     pixels = image.reshape(-1, 3)
 
+    # Calculate unique colors in original
+    unique_colors = len(np.unique(pixels.view([('', pixels.dtype)] * pixels.shape[1])))
+
     # KMeans
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
     kmeans.fit(pixels)
@@ -38,7 +41,7 @@ def compress_image(image_path, k=16):
     compressed_pixels = centers[labels]
     compressed_img = compressed_pixels.reshape(h, w, 3)
 
-    return compressed_img
+    return compressed_img, unique_colors
 
 
 # =========================
@@ -57,7 +60,10 @@ def index():
         upload_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(upload_path)
 
-        compressed = compress_image(upload_path, k)
+        # Get original file size
+        original_size = os.path.getsize(upload_path)
+
+        compressed, unique_colors = compress_image(upload_path, k)
 
         # Change extension to .jpg for better compression
         base_name = os.path.splitext(filename)[0]
@@ -68,11 +74,21 @@ def index():
         cv2.imwrite(output_path, cv2.cvtColor(compressed, cv2.COLOR_RGB2BGR), 
                    [cv2.IMWRITE_JPEG_QUALITY, 85])
 
+        # Get compressed file size
+        compressed_size = os.path.getsize(output_path)
+
+        # Calculate compression ratio
+        compression_ratio = ((original_size - compressed_size) / original_size) * 100
+
         return render_template(
             "index.html",
             original=f"uploads/{filename}",
             compressed=f"outputs/{output_name}",
-            k=k
+            k=k,
+            unique_colors=unique_colors,
+            original_size=round(original_size / 1024, 2),  # KB
+            compressed_size=round(compressed_size / 1024, 2),  # KB
+            compression_ratio=round(compression_ratio, 1)
         )
 
     return render_template("index.html")
